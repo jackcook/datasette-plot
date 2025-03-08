@@ -1,6 +1,7 @@
 .datasette-plot {
   background: white;
   max-width: 800px;
+  padding: 1rem;
 
   & .mark-editor {
     border: 1px solid black;

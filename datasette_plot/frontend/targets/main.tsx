@@ -166,7 +166,7 @@ function App(props: {
   return (
     <div className="datasette-plot">
       <PlotEditor data={rows} columns={columns} initialMarks={initialMarks} />
-      {next !== null ? (
+      {next !== undefined ? (
         <div>Warning: not all table rows returned, only {rows.length} rows</div>
       ) : null}
     </div>

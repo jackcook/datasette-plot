@@ -11,17 +11,15 @@ export interface LineYOptionsWithHidePoints extends LineYOptions {
   hidePoints?: boolean;
 }
 
-function ChannelValueSelector(props: {
+function ValueSelector(props: {
   required: boolean;
   title: string;
-  columns: string[];
-  value: string | undefined;
-  setValue: (v: string | undefined) => void;
+  columns?: string[];
+  value: string | boolean | undefined;
+  setValue: (v: string | boolean | undefined) => void;
 }) {
   const { title, columns, value, setValue, required } = props;
-  const [show, setShow] = useState<boolean>(
-    props.required || value !== undefined
-  );
+  const [show, setShow] = useState<boolean>(required || value !== undefined);
 
   useEffect(() => {
     if (!show && !value) setValue(undefined);
@@ -36,68 +34,27 @@ function ChannelValueSelector(props: {
         <div style="display: flex; justify-content: space-between; width: 100%;">
           <div className="dp-title">{title}</div>
           <div>
-            {(show || required) && (
-              <select
-                value={value}
-                onChange={(e) =>
-                  setValue((e.target as HTMLSelectElement).value)
-                }
-              >
-                {columns.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            )}
-          </div>
-        </div>
-        <div
-          onClick={() => {
-            if (!required) setShow((d) => !d);
-            // hiding this should remove any value
-            if (show) {
-              setValue(undefined);
-            }
-          }}
-          style={{
-            marginLeft: ".5rem",
-            color: required ? "rgba(0,0,0,0)" : "",
-          }}
-        >
-          {required ? "-" : show ? "-" : "+"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Checkbox(props: {
-  required: boolean;
-  title: string;
-  value: boolean;
-  setValue: (v: boolean | undefined) => void;
-}) {
-  const { title, required, value, setValue } = props;
-  const [show, setShow] = useState<boolean>(required || value);
-
-  useEffect(() => {
-    if (!show && !value) setValue(false);
-  }, [show, value]);
-
-  return (
-    <div className="channel-value-selector">
-      <div className="title-bar">
-        <div style="display: flex; justify-content: space-between; width: 100%;">
-          <div className="dp-title">{title}</div>
-          <div>
-            {(show || required) && (
-              <input
-                type="checkbox"
-                checked={value}
-                onChange={(e) =>
-                  setValue((e.target as HTMLInputElement).checked)
-                }
-              />
-            )}
+            {(show || required) &&
+              (columns ? (
+                <select
+                  value={value as string}
+                  onChange={(e) =>
+                    setValue((e.target as HTMLSelectElement).value)
+                  }
+                >
+                  {columns.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="checkbox"
+                  checked={value as boolean}
+                  onChange={(e) =>
+                    setValue((e.target as HTMLInputElement).checked)
+                  }
+                />
+              ))}
           </div>
         </div>
         <div
@@ -127,28 +84,27 @@ function DotEditor(props: {
 }) {
   const [x, setX] = useState<string>(props.options.x as string);
   const [y, setY] = useState<string>(props.options.y as string);
-  const [tip, setTip] = useState<boolean>(props.options.tip as boolean);
 
   useEffect(() => {
-    props.onUpdate({ x, y, fill: "id", tip });
-  }, [x, y, tip]);
+    props.onUpdate({ x, y, fill: "id", tip: props.options.tip });
+  }, [x, y]);
 
   const id = useId();
 
   return (
     <div>
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="X"
         value={x}
-        setValue={setX}
+        setValue={(v) => setX(v as string)}
         columns={props.columns}
       />
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="Y"
         value={y}
-        setValue={setY}
+        setValue={(v) => setY(v as string)}
         columns={props.columns}
       />
     </div>
@@ -167,25 +123,25 @@ function BarEditor(props: {
   }, [x, y, fill]);
   return (
     <div>
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="X"
         value={x}
-        setValue={setX}
+        setValue={(v) => setX(v as string)}
         columns={props.columns}
       />
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="Y"
         value={y}
-        setValue={setY}
+        setValue={(v) => setY(v as string)}
         columns={props.columns}
       />
-      <ChannelValueSelector
+      <ValueSelector
         required={false}
         title="Fill"
         value={fill}
-        setValue={setFill}
+        setValue={(v) => setFill(v as string)}
         columns={props.columns}
       />
     </div>
@@ -206,25 +162,25 @@ function LineYEditor(props: {
   }, [x, y, hidePoints]);
   return (
     <div>
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="X"
         value={x}
-        setValue={setX}
+        setValue={(v) => setX(v as string)}
         columns={props.columns}
       />
-      <ChannelValueSelector
+      <ValueSelector
         required={true}
         title="Y"
         value={y}
-        setValue={setY}
+        setValue={(v) => setY(v as string)}
         columns={props.columns}
       />
-      <Checkbox
+      <ValueSelector
         required={true}
         title="Hide points"
         value={hidePoints}
-        setValue={setHidePoints}
+        setValue={(v) => setHidePoints(v as boolean)}
       />
     </div>
   );
