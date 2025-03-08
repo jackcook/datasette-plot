@@ -7,6 +7,10 @@ import {
   LineYOptions,
 } from "@observablehq/plot";
 
+export interface LineYOptionsWithHidePoints extends LineYOptions {
+  hidePoints?: boolean;
+}
+
 function ChannelValueSelector(props: {
   required: boolean;
   title: string;
@@ -43,6 +47,56 @@ function ChannelValueSelector(props: {
                   <option key={c}>{c}</option>
                 ))}
               </select>
+            )}
+          </div>
+        </div>
+        <div
+          onClick={() => {
+            if (!required) setShow((d) => !d);
+            // hiding this should remove any value
+            if (show) {
+              setValue(undefined);
+            }
+          }}
+          style={{
+            marginLeft: ".5rem",
+            color: required ? "rgba(0,0,0,0)" : "",
+          }}
+        >
+          {required ? "-" : show ? "-" : "+"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Checkbox(props: {
+  required: boolean;
+  title: string;
+  value: boolean;
+  setValue: (v: boolean | undefined) => void;
+}) {
+  const { title, required, value, setValue } = props;
+  const [show, setShow] = useState<boolean>(required || value);
+
+  useEffect(() => {
+    if (!show && !value) setValue(false);
+  }, [show, value]);
+
+  return (
+    <div className="channel-value-selector">
+      <div className="title-bar">
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+          <div className="dp-title">{title}</div>
+          <div>
+            {(show || required) && (
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={(e) =>
+                  setValue((e.target as HTMLInputElement).checked)
+                }
+              />
             )}
           </div>
         </div>
@@ -139,14 +193,17 @@ function BarEditor(props: {
 }
 function LineYEditor(props: {
   columns: string[];
-  onUpdate: (options: LineYOptions) => void;
-  options: LineYOptions;
+  onUpdate: (options: LineYOptionsWithHidePoints) => void;
+  options: LineYOptionsWithHidePoints;
 }) {
   const [x, setX] = useState<string>(props.options.x as string);
   const [y, setY] = useState<string>(props.options.y as string);
+  const [hidePoints, setHidePoints] = useState<boolean>(
+    props.options.hidePoints ?? false
+  );
   useEffect(() => {
-    props.onUpdate({ x, y, stroke: "id", tip: false });
-  }, [x, y]);
+    props.onUpdate({ x, y, stroke: "id", tip: false, hidePoints });
+  }, [x, y, hidePoints]);
   return (
     <div>
       <ChannelValueSelector
@@ -162,6 +219,12 @@ function LineYEditor(props: {
         value={y}
         setValue={setY}
         columns={props.columns}
+      />
+      <Checkbox
+        required={true}
+        title="Hide points"
+        value={hidePoints}
+        setValue={setHidePoints}
       />
     </div>
   );

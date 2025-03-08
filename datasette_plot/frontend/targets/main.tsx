@@ -4,7 +4,11 @@ import { h, render } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { MarkOptions, barY, dot, lineY, plot } from "@observablehq/plot";
 
-import { MarkEditor, Mark } from "../components/marks";
+import {
+  LineYOptionsWithHidePoints,
+  MarkEditor,
+  Mark,
+} from "../components/marks";
 
 function interestingColumns(columns: string[], sample: { [key: string]: any }) {
   let x, y;
@@ -99,16 +103,35 @@ function Preview(props: {
     const p = plot({
       width: 800,
       color: { legend: true },
-      marks: props.marks.map((m) => {
-        switch (m.mark) {
-          case Mark.Dot:
-            return dot(props.data, m.options);
-          case Mark.LineY:
-            return lineY(props.data, m.options);
-          case Mark.BarY:
-            return barY(props.data, m.options);
-        }
-      }),
+      marks: props.marks
+        .map((m) => {
+          // Tooltip options for all dot marks
+          const tooltipOptions = {
+            channels: { gpu: "gpu" },
+            tip: { format: { fill: false, gpu: true } },
+          };
+
+          switch (m.mark) {
+            case Mark.Dot:
+              return [dot(props.data, { ...m.options, ...tooltipOptions })];
+            case Mark.LineY:
+              // Render an extra dot mark along with line marks
+              const options = m.options as LineYOptionsWithHidePoints;
+              return [
+                lineY(props.data, options),
+                dot(props.data, {
+                  x: options.x,
+                  y: options.y,
+                  r: options.hidePoints ? 0 : undefined,
+                  fill: options.stroke,
+                  ...tooltipOptions,
+                }),
+              ];
+            case Mark.BarY:
+              return [barY(props.data, m.options)];
+          }
+        })
+        .flat(),
     });
 
     target.current.appendChild(p);
@@ -196,17 +219,7 @@ export async function main() {
     ? url.searchParams.getAll("_plot-mark").map((d) => JSON.parse(d))
     : [
         {
-          mark: "dot",
-          options: {
-            x: "requests_per_second",
-            y: "ttlt_p50",
-            fill: "id",
-            channels: { gpu: "gpu" },
-            tip: { format: { fill: false, gpu: true } },
-          },
-        },
-        {
-          mark: "line-y",
+          mark: Mark.LineY,
           options: {
             x: "requests_per_second",
             y: "ttlt_p50",
