@@ -5,16 +5,37 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { MarkOptions, barY, dot, lineY, plot } from "@observablehq/plot";
 
 import {
+  Column,
   LineYOptionsWithHidePoints,
   MarkEditor,
   Mark,
 } from "../components/marks";
 
-function interestingColumns(columns: string[], sample: { [key: string]: any }) {
+const COLUMN_ID_TO_NAME = {
+  requests_per_second: "QPS (per replica)",
+  ttlt_p50: "Time to last token (p50)",
+  ttlt_p90: "Time to last token (p90)",
+  ttlt_p95: "Time to last token (p95)",
+  ttlt_p99: "Time to last token (p99)",
+  ttft_p50: "Time to first token (p50)",
+  ttft_p90: "Time to first token (p90)",
+  ttft_p95: "Time to first token (p95)",
+  ttft_p99: "Time to first token (p99)",
+  itl_p50: "Inter-token latency (p50)",
+  itl_p90: "Inter-token latency (p90)",
+  itl_p95: "Inter-token latency (p95)",
+  itl_p99: "Inter-token latency (p99)",
+  kv_cache_usage_mean: "Mean KV cache utilization",
+  tpot_median: "Server time per output token (median)",
+  prompt_tokens: "Number of tokens in prompt",
+  generated_tokens: "Number of generated tokens",
+};
+
+function interestingColumns(columns: Column[], sample: { [key: string]: any }) {
   let x, y;
   for (const column of columns) {
-    if (column === "rowid" || column === "id") continue;
-    if (typeof sample[column] === "number") {
+    if (column.id === "rowid" || column.id === "id") continue;
+    if (typeof sample[column.id] === "number") {
       if (x === undefined) {
         x = column;
       } else if (y === undefined) {
@@ -34,11 +55,12 @@ interface Row {
 
 function PlotEditor(props: {
   data: any;
-  columns: string[];
+  columns: Column[];
   initialMarks?: { mark: Mark; options: MarkOptions }[];
 }) {
+  const { data, columns, initialMarks } = props;
   const init = useMemo(() => {
-    const [x, y] = interestingColumns(props.columns, props.data[0]);
+    const [x, y] = interestingColumns(columns, data[0]);
     return { mark: Mark.Dot, options: { x, y } } as {
       mark: Mark;
       options: MarkOptions;
@@ -158,7 +180,7 @@ function Preview(props: {
 function App(props: {
   rows: any[];
   next: string | null;
-  columns: string[];
+  columns: Column[];
   initialMarks?: { mark: Mark; options: MarkOptions }[];
 }) {
   const { rows, next, columns, initialMarks } = props;
@@ -194,14 +216,19 @@ export async function main() {
   const data = (await fetch(dataUrl).then((r) =>
     r.json()
   )) as DatasetteJsonResponse;
-  const columns = Object.keys(data.rows[0]);
+
+  const columns = Object.keys(data.rows[0]).map((id) => ({
+    id,
+    name: COLUMN_ID_TO_NAME[id] ?? id,
+    numeric: data.rows.every((row) => typeof row[id] === "number"),
+  }));
 
   // for now, any column named "date" should be converted to JS dates.
   const rows: Row[] = data.rows.slice();
   for (const column of columns) {
-    if (column.toLowerCase() == "date") {
+    if (column.id.toLowerCase() == "date") {
       for (const row of rows) {
-        row[column] = new Date(row[column]);
+        row[column.id] = new Date(row[column.id]);
       }
     }
   }

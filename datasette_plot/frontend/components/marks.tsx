@@ -11,10 +11,16 @@ export interface LineYOptionsWithHidePoints extends LineYOptions {
   hidePoints?: boolean;
 }
 
+export interface Column {
+  id: string;
+  name: string;
+  numeric: boolean;
+}
+
 function ValueSelector(props: {
   required: boolean;
   title: string;
-  columns?: string[];
+  columns?: Column[];
   value: string | boolean | undefined;
   setValue: (v: string | boolean | undefined) => void;
 }) {
@@ -43,7 +49,9 @@ function ValueSelector(props: {
                   }
                 >
                   {columns.map((c) => (
-                    <option key={c}>{c}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               ) : (
@@ -78,49 +86,20 @@ function ValueSelector(props: {
 }
 
 function DotEditor(props: {
-  columns: string[];
+  columns: Column[];
   onUpdate: (options: DotOptions) => void;
   options: DotOptions;
 }) {
-  const [x, setX] = useState<string>(props.options.x as string);
-  const [y, setY] = useState<string>(props.options.y as string);
+  const { columns, onUpdate, options } = props;
+
+  const [x, setX] = useState<string>(options.x as string);
+  const [y, setY] = useState<string>(options.y as string);
+  const [fill, setFill] = useState<string>(options.fill as string);
 
   useEffect(() => {
-    props.onUpdate({ x, y, fill: "id", tip: props.options.tip });
-  }, [x, y]);
-
-  const id = useId();
-
-  return (
-    <div>
-      <ValueSelector
-        required={true}
-        title="X"
-        value={x}
-        setValue={(v) => setX(v as string)}
-        columns={props.columns}
-      />
-      <ValueSelector
-        required={true}
-        title="Y"
-        value={y}
-        setValue={(v) => setY(v as string)}
-        columns={props.columns}
-      />
-    </div>
-  );
-}
-function BarEditor(props: {
-  columns: string[];
-  onUpdate: (options: BarYOptions) => void;
-  options: BarYOptions;
-}) {
-  const [x, setX] = useState<string>(props.options.x as string);
-  const [y, setY] = useState<string>(props.options.y as string);
-  const [fill, setFill] = useState<string>(props.options.fill as string);
-  useEffect(() => {
-    props.onUpdate({ x, y, fill, tip: true });
+    onUpdate({ x, y, fill: fill ?? "id", tip: options.tip });
   }, [x, y, fill]);
+
   return (
     <div>
       <ValueSelector
@@ -128,38 +107,40 @@ function BarEditor(props: {
         title="X"
         value={x}
         setValue={(v) => setX(v as string)}
-        columns={props.columns}
+        columns={columns.filter((c) => c.numeric)}
       />
       <ValueSelector
         required={true}
         title="Y"
         value={y}
         setValue={(v) => setY(v as string)}
-        columns={props.columns}
+        columns={columns.filter((c) => c.numeric)}
       />
       <ValueSelector
         required={false}
         title="Fill"
         value={fill}
         setValue={(v) => setFill(v as string)}
-        columns={props.columns}
+        columns={columns.filter((c) => !c.numeric)}
       />
     </div>
   );
 }
-function LineYEditor(props: {
-  columns: string[];
-  onUpdate: (options: LineYOptionsWithHidePoints) => void;
-  options: LineYOptionsWithHidePoints;
+function BarEditor(props: {
+  columns: Column[];
+  onUpdate: (options: BarYOptions) => void;
+  options: BarYOptions;
 }) {
-  const [x, setX] = useState<string>(props.options.x as string);
-  const [y, setY] = useState<string>(props.options.y as string);
-  const [hidePoints, setHidePoints] = useState<boolean>(
-    props.options.hidePoints ?? false
-  );
+  const { columns, onUpdate, options } = props;
+
+  const [x, setX] = useState<string>(options.x as string);
+  const [y, setY] = useState<string>(options.y as string);
+  const [fill, setFill] = useState<string>(options.fill as string);
+
   useEffect(() => {
-    props.onUpdate({ x, y, stroke: "id", tip: false, hidePoints });
-  }, [x, y, hidePoints]);
+    onUpdate({ x, y, fill, tip: true });
+  }, [x, y, fill]);
+
   return (
     <div>
       <ValueSelector
@@ -167,14 +148,58 @@ function LineYEditor(props: {
         title="X"
         value={x}
         setValue={(v) => setX(v as string)}
-        columns={props.columns}
+        columns={columns.filter((c) => !c.numeric)}
       />
       <ValueSelector
         required={true}
         title="Y"
         value={y}
         setValue={(v) => setY(v as string)}
-        columns={props.columns}
+        columns={columns.filter((c) => c.numeric)}
+      />
+      <ValueSelector
+        required={false}
+        title="Fill"
+        value={fill}
+        setValue={(v) => setFill(v as string)}
+        columns={columns.filter((c) => !c.numeric)}
+      />
+    </div>
+  );
+}
+
+function LineYEditor(props: {
+  columns: Column[];
+  onUpdate: (options: LineYOptionsWithHidePoints) => void;
+  options: LineYOptionsWithHidePoints;
+}) {
+  const { columns, onUpdate, options } = props;
+
+  const [x, setX] = useState<string>(options.x as string);
+  const [y, setY] = useState<string>(options.y as string);
+  const [hidePoints, setHidePoints] = useState<boolean>(
+    options.hidePoints ?? false
+  );
+
+  useEffect(() => {
+    onUpdate({ x, y, stroke: "id", tip: false, hidePoints });
+  }, [x, y, hidePoints]);
+
+  return (
+    <div>
+      <ValueSelector
+        required={true}
+        title="X"
+        value={x}
+        setValue={(v) => setX(v as string)}
+        columns={columns.filter((c) => c.numeric)}
+      />
+      <ValueSelector
+        required={true}
+        title="Y"
+        value={y}
+        setValue={(v) => setY(v as string)}
+        columns={columns.filter((c) => c.numeric)}
       />
       <ValueSelector
         required={true}
@@ -193,17 +218,19 @@ export const enum Mark {
 }
 
 export function MarkEditor(props: {
-  columns: string[];
+  columns: Column[];
   initalMark: Mark;
   initialOptions: MarkOptions;
   onUpdate: (m: Mark, o: MarkOptions) => void;
   onDelete: () => void;
 }) {
-  let [mark, setMark] = useState<Mark>(props.initalMark);
-  let [options, setOptions] = useState<MarkOptions>(props.initialOptions);
+  const { columns, initalMark, initialOptions, onUpdate, onDelete } = props;
+
+  let [mark, setMark] = useState<Mark>(initalMark);
+  let [options, setOptions] = useState<MarkOptions>(initialOptions);
 
   useEffect(() => {
-    props.onUpdate(mark, options);
+    onUpdate(mark, options);
   }, [mark, options]);
 
   function render() {
@@ -211,7 +238,7 @@ export function MarkEditor(props: {
       case Mark.Dot:
         return (
           <DotEditor
-            columns={props.columns}
+            columns={columns}
             onUpdate={setOptions}
             options={options}
           />
@@ -219,7 +246,7 @@ export function MarkEditor(props: {
       case Mark.BarY:
         return (
           <BarEditor
-            columns={props.columns}
+            columns={columns}
             onUpdate={setOptions}
             options={options}
           />
@@ -227,7 +254,7 @@ export function MarkEditor(props: {
       case Mark.LineY:
         return (
           <LineYEditor
-            columns={props.columns}
+            columns={columns}
             onUpdate={setOptions}
             options={options}
           />
@@ -250,7 +277,7 @@ export function MarkEditor(props: {
           </select>
         </div>
         <div>
-          <button className="delete-mark" onClick={props.onDelete}>
+          <button className="delete-mark" onClick={onDelete}>
             Delete mark
           </button>
         </div>
