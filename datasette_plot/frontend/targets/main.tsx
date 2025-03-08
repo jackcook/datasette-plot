@@ -2,7 +2,15 @@ import "./main.css";
 
 import { h, render } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { MarkOptions, barY, dot, lineY, plot } from "@observablehq/plot";
+import {
+  BarYOptions,
+  DotOptions,
+  MarkOptions,
+  barY,
+  dot,
+  lineY,
+  plot,
+} from "@observablehq/plot";
 
 import {
   Column,
@@ -25,7 +33,7 @@ const COLUMN_ID_TO_NAME = {
   itl_p90: "Inter-token latency (p90)",
   itl_p95: "Inter-token latency (p95)",
   itl_p99: "Inter-token latency (p99)",
-  kv_cache_usage_mean: "Mean KV cache utilization",
+  kv_cache_usage_mean: "Mean KV cache utilization (%)",
   tpot_median: "Server time per output token (median)",
   prompt_tokens: "Number of tokens in prompt",
   generated_tokens: "Number of generated tokens",
@@ -122,9 +130,19 @@ function Preview(props: {
   const target = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!target.current) return;
+    const options = props.marks[0].options as
+      | BarYOptions
+      | DotOptions
+      | LineYOptionsWithHidePoints;
     const p = plot({
       width: 800,
       color: { legend: true },
+      x: {
+        label: COLUMN_ID_TO_NAME[options.x as string],
+      },
+      y: {
+        label: COLUMN_ID_TO_NAME[options.y as string],
+      },
       marks: props.marks
         .map((m) => {
           // Tooltip options for all dot marks
@@ -140,7 +158,13 @@ function Preview(props: {
               // Render an extra dot mark along with line marks
               const options = m.options as LineYOptionsWithHidePoints;
               return [
-                lineY(props.data, options),
+                lineY(
+                  // Ensure lines are drawn from left to right
+                  props.data.sort((a, b) =>
+                    a[options.x as string] - b[options.x as string] < 0 ? 1 : -1
+                  ),
+                  options
+                ),
                 dot(props.data, {
                   x: options.x,
                   y: options.y,
