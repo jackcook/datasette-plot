@@ -26,14 +26,17 @@ const COLUMN_ID_TO_NAME = {
   gpu: "GPU",
   vllm_extra_args: "Extra vLLM args",
   requests_per_second: "QPS (per replica)",
+  ttlt_mean: "Time to last token (seconds, mean)",
   ttlt_p50: "Time to last token (seconds, P50)",
   ttlt_p90: "Time to last token (seconds, P90)",
   ttlt_p95: "Time to last token (seconds, P95)",
   ttlt_p99: "Time to last token (seconds, P99)",
+  ttft_mean: "Time to first token (seconds, mean)",
   ttft_p50: "Time to first token (seconds, P50)",
   ttft_p90: "Time to first token (seconds, P90)",
   ttft_p95: "Time to first token (seconds, P95)",
   ttft_p99: "Time to first token (seconds, P99)",
+  itl_mean: "Inter-token latency (seconds, mean)",
   itl_p50: "Inter-token latency (seconds, P50)",
   itl_p90: "Inter-token latency (seconds, P90)",
   itl_p95: "Inter-token latency (seconds, P95)",
@@ -43,6 +46,29 @@ const COLUMN_ID_TO_NAME = {
   prompt_tokens: "Number of tokens in prompt",
   generated_tokens: "Number of generated tokens",
 };
+
+const SAMPLE_VISUALIZATIONS = [
+  {
+    key: "Show all benchmarks",
+    value:
+      '/stopwatch/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"dot"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"fill"%3A"gpu"%2C"tip"%3Afalse%7D%7D',
+  },
+  {
+    key: "KV cache utilization vs. number of generated tokens on A100-80GB",
+    value:
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+%3D+"A100-80GB"+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+  },
+  {
+    key: "GPU vs. P95 time-to-last-token",
+    value:
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+generated_tokens+%3D+512+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+  },
+  {
+    key: "Enable-chunked-prefill and enforce-eager vs. P50 time-to-first-token",
+    value:
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+%3D+"H100"+and+generated_tokens+%3D+128&_plot-mark=%7B"mark"%3A"bar-y"%2C"options"%3A%7B"x"%3A"vllm_extra_args"%2C"y"%3A"ttlt_p50"%2C"fill"%3A"vllm_extra_args"%2C"tip"%3Atrue%7D%7D',
+  },
+];
 
 function interestingColumns(columns: Column[], sample: { [key: string]: any }) {
   let x, y;
@@ -216,6 +242,18 @@ function App(props: {
 
   return (
     <div className="datasette-plot">
+      <div className="preset-buttons-container">
+        <div>Sample visualizations:</div>
+        <div className="preset-buttons">
+          <ul>
+            {SAMPLE_VISUALIZATIONS.map(({ key, value }) => (
+              <li>
+                <a href={value}>{key}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <PlotEditor data={rows} columns={columns} initialMarks={initialMarks} />
       {next !== undefined ? (
         <div>Warning: not all table rows returned, only {rows.length} rows</div>

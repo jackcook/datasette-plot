@@ -37,4 +37,18 @@
       }
     }
   }
+
+  & .preset-buttons-container {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+
+    & ul {
+      list-style-type: initial;
+      margin-left: 1rem;
+    }
+
+    & .preset-button {
+      display: block;
+    }
+  }
 }
