@@ -2,15 +2,7 @@ import "./main.css";
 
 import { h, render } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import {
-  dot,
-  plot,
-  linearRegressionY,
-  MarkOptions,
-  lineY,
-  barY,
-  areaY,
-} from "@observablehq/plot";
+import { MarkOptions, barY, dot, lineY, plot } from "@observablehq/plot";
 
 import { MarkEditor, Mark } from "../components/marks";
 
@@ -52,7 +44,7 @@ function PlotEditor(props: {
     props.initialMarks ?? [init]
   );
 
-  function onAdddMark() {
+  function onAddMark() {
     let x, y;
     if (marks.length) {
       // @ts-ignore TODO: x/y dont exist in MarkOptions
@@ -83,7 +75,7 @@ function PlotEditor(props: {
         <MarkEditor
           columns={props.columns}
           initalMark={mark.mark}
-          initionalOptions={mark.options}
+          initialOptions={mark.options}
           onUpdate={(mark, options) => {
             setMarks(marks.map((d, i) => (i === idx ? { mark, options } : d)));
           }}
@@ -92,10 +84,11 @@ function PlotEditor(props: {
           }}
         />
       ))}
-      <button onClick={onAdddMark}>Add new visualization mark</button>
+      <button onClick={onAddMark}>Add new visualization mark</button>
     </div>
   );
 }
+
 function Preview(props: {
   data: any;
   marks: { mark: Mark; options: MarkOptions }[];
@@ -110,14 +103,10 @@ function Preview(props: {
         switch (m.mark) {
           case Mark.Dot:
             return dot(props.data, m.options);
-          case Mark.LinearRegressionY:
-            return linearRegressionY(props.data, m.options);
           case Mark.LineY:
             return lineY(props.data, m.options);
           case Mark.BarY:
             return barY(props.data, m.options);
-          case Mark.AreaY:
-            return areaY(props.data, m.options);
         }
       }),
     });
@@ -150,18 +139,9 @@ function App(props: {
   initialMarks?: { mark: Mark; options: MarkOptions }[];
 }) {
   const { rows, next, columns, initialMarks } = props;
-  const [show, setShow] = useState<boolean>(props.initialMarks !== null);
-  if (!show) {
-    return (
-      <div>
-        <button onClick={() => setShow(true)}>Show Plot</button>
-      </div>
-    );
-  }
 
   return (
     <div className="datasette-plot">
-      <button onClick={() => setShow(false)}>Hide Plot</button>
       <PlotEditor data={rows} columns={columns} initialMarks={initialMarks} />
       {next !== null ? (
         <div>Warning: not all table rows returned, only {rows.length} rows</div>
@@ -214,7 +194,26 @@ export async function main() {
   const url = new URL(window.location.href);
   const initialMarks = url.searchParams.has("_plot-mark")
     ? url.searchParams.getAll("_plot-mark").map((d) => JSON.parse(d))
-    : null;
+    : [
+        {
+          mark: "dot",
+          options: {
+            x: "requests_per_second",
+            y: "ttlt_p50",
+            fill: "id",
+            channels: { gpu: "gpu" },
+            tip: { format: { fill: false, gpu: true } },
+          },
+        },
+        {
+          mark: "line-y",
+          options: {
+            x: "requests_per_second",
+            y: "ttlt_p50",
+            stroke: "id",
+          },
+        },
+      ];
   render(
     <App
       initialMarks={initialMarks}

@@ -3,15 +3,11 @@ import { useEffect, useId, useState } from "preact/hooks";
 import {
   MarkOptions,
   DotOptions,
-  AreaYOptions,
   BarYOptions,
   LineYOptions,
-  LinearRegressionYOptions,
-  lineY,
-  barY,
 } from "@observablehq/plot";
 
-function ChanelValueSelector(props: {
+function ChannelValueSelector(props: {
   required: boolean;
   title: string;
   columns: string[];
@@ -77,83 +73,28 @@ function DotEditor(props: {
 }) {
   const [x, setX] = useState<string>(props.options.x as string);
   const [y, setY] = useState<string>(props.options.y as string);
-  const [fill, setFill] = useState<string | undefined>(
-    props.options.fill as string | undefined
-  );
-  const [stroke, setStroke] = useState<string | undefined>(
-    props.options.stroke as string | undefined
-  );
+  const [tip, setTip] = useState<boolean>(props.options.tip as boolean);
+
   useEffect(() => {
-    props.onUpdate({ x, y, fill, stroke });
-  }, [x, y, fill, stroke]);
+    props.onUpdate({ x, y, fill: "id", tip });
+  }, [x, y, tip]);
 
   const id = useId();
 
   return (
     <div>
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="X"
         value={x}
         setValue={setX}
         columns={props.columns}
       />
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="Y"
         value={y}
         setValue={setY}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={false}
-        title="Fill"
-        value={fill}
-        setValue={setFill}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={false}
-        title="Stroke"
-        value={stroke}
-        setValue={setStroke}
-        columns={props.columns}
-      />
-    </div>
-  );
-}
-function AreaEditor(props: {
-  columns: string[];
-  onUpdate: (options: AreaYOptions) => void;
-  options: AreaYOptions;
-}) {
-  const [x, setX] = useState<string>(props.options.x as string);
-  const [y, setY] = useState<string>(props.options.y as string);
-  const [fill, setFill] = useState<string | null>(props.options.fill as string);
-  useEffect(() => {
-    props.onUpdate({ x, y, fill, tip: true });
-  }, [x, y, fill]);
-  return (
-    <div>
-      <ChanelValueSelector
-        required={true}
-        title="X"
-        value={x}
-        setValue={setX}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={true}
-        title="Y"
-        value={y}
-        setValue={setY}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={false}
-        title="Fill"
-        value={fill}
-        setValue={setFill}
         columns={props.columns}
       />
     </div>
@@ -172,21 +113,21 @@ function BarEditor(props: {
   }, [x, y, fill]);
   return (
     <div>
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="X"
         value={x}
         setValue={setX}
         columns={props.columns}
       />
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="Y"
         value={y}
         setValue={setY}
         columns={props.columns}
       />
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={false}
         title="Fill"
         value={fill}
@@ -196,75 +137,30 @@ function BarEditor(props: {
     </div>
   );
 }
-function LineEditor(props: {
+function LineYEditor(props: {
   columns: string[];
-  onUpdate: (options: DotOptions) => void;
+  onUpdate: (options: LineYOptions) => void;
   options: LineYOptions;
 }) {
   const [x, setX] = useState<string>(props.options.x as string);
   const [y, setY] = useState<string>(props.options.y as string);
-  const [stroke, setStroke] = useState<string>(props.options.stroke as string);
   useEffect(() => {
-    props.onUpdate({ x, y, tip: true });
+    props.onUpdate({ x, y, stroke: "id", tip: false });
   }, [x, y]);
   return (
     <div>
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="X"
         value={x}
         setValue={setX}
         columns={props.columns}
       />
-      <ChanelValueSelector
+      <ChannelValueSelector
         required={true}
         title="Y"
         value={y}
         setValue={setY}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={false}
-        title="Stroke"
-        value={stroke}
-        setValue={setStroke}
-        columns={props.columns}
-      />
-    </div>
-  );
-}
-function LinearRegressionYEditor(props: {
-  columns: string[];
-  onUpdate: (options: LinearRegressionYOptions) => void;
-  options: LinearRegressionYOptions;
-}) {
-  const [x, setX] = useState<string>(props.options.x as string);
-  const [y, setY] = useState<string>(props.options.y as string);
-  const [stroke, setStroke] = useState<string>(props.options.stroke as string);
-  useEffect(() => {
-    props.onUpdate({ x, y, stroke, tip: true });
-  }, [x, y, stroke]);
-  return (
-    <div>
-      <ChanelValueSelector
-        required={true}
-        title="X"
-        value={x}
-        setValue={setX}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={true}
-        title="Y"
-        value={y}
-        setValue={setY}
-        columns={props.columns}
-      />
-      <ChanelValueSelector
-        required={false}
-        title="Stroke"
-        value={stroke}
-        setValue={setStroke}
         columns={props.columns}
       />
     </div>
@@ -273,21 +169,19 @@ function LinearRegressionYEditor(props: {
 
 export const enum Mark {
   Dot = "dot",
-  LinearRegressionY = "linear-regression-y",
   BarY = "bar-y",
-  AreaY = "area-y",
   LineY = "line-y",
 }
 
 export function MarkEditor(props: {
   columns: string[];
   initalMark: Mark;
-  initionalOptions: MarkOptions;
+  initialOptions: MarkOptions;
   onUpdate: (m: Mark, o: MarkOptions) => void;
   onDelete: () => void;
 }) {
   let [mark, setMark] = useState<Mark>(props.initalMark);
-  let [options, setOptions] = useState<MarkOptions>(props.initionalOptions);
+  let [options, setOptions] = useState<MarkOptions>(props.initialOptions);
 
   useEffect(() => {
     props.onUpdate(mark, options);
@@ -303,22 +197,6 @@ export function MarkEditor(props: {
             options={options}
           />
         );
-      case Mark.LinearRegressionY:
-        return (
-          <LinearRegressionYEditor
-            columns={props.columns}
-            onUpdate={setOptions}
-            options={options}
-          />
-        );
-      case Mark.AreaY:
-        return (
-          <AreaEditor
-            columns={props.columns}
-            onUpdate={setOptions}
-            options={options}
-          />
-        );
       case Mark.BarY:
         return (
           <BarEditor
@@ -329,7 +207,7 @@ export function MarkEditor(props: {
         );
       case Mark.LineY:
         return (
-          <LinearRegressionYEditor
+          <LineYEditor
             columns={props.columns}
             onUpdate={setOptions}
             options={options}
@@ -348,11 +226,7 @@ export function MarkEditor(props: {
             }
           >
             <option value={Mark.Dot}>Dot</option>
-            <option value={Mark.LinearRegressionY}>
-              Linear Regression (y)
-            </option>
             <option value={Mark.BarY}>Bar (y)</option>
-            <option value={Mark.AreaY}>Area (y)</option>
             <option value={Mark.LineY}>Line (y)</option>
           </select>
         </div>

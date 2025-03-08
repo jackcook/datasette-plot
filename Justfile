@@ -10,7 +10,7 @@ js:
     --outdir=datasette_plot/static
 
 dev:
-  DATASETTE_SECRET=abc123 watchexec --signal SIGKILL --restart --clear -e py,ts,js,html,css,sql -- \
+  DATASETTE_SECRET=abc123 watchexec --restart --clear -e py,ts,js,html,css,sql -- \
     python3 -m datasette -p 8999 \
       --setting max_returned_rows 10000 \
       --root test.db
