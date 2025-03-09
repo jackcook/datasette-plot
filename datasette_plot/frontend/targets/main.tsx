@@ -54,6 +54,11 @@ const SAMPLE_VISUALIZATIONS = [
       '/stopwatch/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"dot"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"fill"%3A"gpu"%2C"tip"%3Afalse%7D%7D',
   },
   {
+    key: "Number of H100 GPUs vs. time-to-last-token for Llama-3.1-8B",
+    value:
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+like+"H100%25"+and+%28vllm_extra_args+%3D+"%5B%5D"+or+vllm_extra_args+like+"%25tensor-parallel-size%25"%29+and+model+like+"%258B%25"+and+generated_tokens+%3D+128',
+  },
+  {
     key: "KV cache utilization vs. number of generated tokens on A100-80GB",
     value:
       '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+%3D+"A100-80GB"+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
