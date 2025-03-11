@@ -183,8 +183,23 @@ function Preview(props: {
         .map((m) => {
           // Tooltip options for all dot marks
           const tooltipOptions = {
-            channels: { gpu: "gpu" },
-            tip: { format: { fill: false, gpu: true } },
+            channels: {
+              Model: "model",
+              Data: "data",
+              GPU: "gpu",
+              Region: "region",
+              "Extra vLLM args": "vllm_extra_args",
+            },
+            tip: {
+              format: {
+                fill: false,
+                model: true,
+                data: true,
+                gpu: true,
+                region: true,
+                vllm_extra_args: true,
+              },
+            },
           };
 
           switch (m.mark) {
