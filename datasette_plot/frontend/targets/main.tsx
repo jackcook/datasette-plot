@@ -77,19 +77,24 @@ const SAMPLE_VISUALIZATIONS = [
 
 const REGION_SAMPLE_VISUALIZATIONS = [
   {
+    key: "Show all benchmarks",
+    value:
+      '/region-test/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+  },
+  {
     key: "us-east-1 (AWS)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "us-east4 (GCP)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "us-ashburn-1 (OCI)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
 ];
 
