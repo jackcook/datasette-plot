@@ -75,6 +75,34 @@ const SAMPLE_VISUALIZATIONS = [
   },
 ];
 
+const REGION_SAMPLE_VISUALIZATIONS = [
+  {
+    key: "us-east-1 (AWS)",
+    value:
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"',
+  },
+  {
+    key: "us-east4 (GCP)",
+    value:
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"',
+  },
+  {
+    key: "us-ashburn-1 (OCI)",
+    value:
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"',
+  },
+];
+
+const getSampleVisualizations = (hostname: string) => {
+  if (hostname === "jackcook--datasette.modal.run") {
+    return SAMPLE_VISUALIZATIONS;
+  } else if (hostname === "jackcook--datasette-region.modal.run") {
+    return REGION_SAMPLE_VISUALIZATIONS;
+  }
+
+  return [];
+};
+
 function interestingColumns(columns: Column[], sample: { [key: string]: any }) {
   let x, y;
   for (const column of columns) {
@@ -266,11 +294,13 @@ function App(props: {
         <div>Sample visualizations:</div>
         <div className="preset-buttons">
           <ul>
-            {SAMPLE_VISUALIZATIONS.map(({ key, value }) => (
-              <li>
-                <a href={value}>{key}</a>
-              </li>
-            ))}
+            {getSampleVisualizations(window.location.hostname).map(
+              ({ key, value }) => (
+                <li>
+                  <a href={value}>{key}</a>
+                </li>
+              )
+            )}
           </ul>
         </div>
       </div>
