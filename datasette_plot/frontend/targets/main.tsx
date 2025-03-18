@@ -25,7 +25,9 @@ const COLUMN_ID_TO_NAME = {
   model: "Model",
   gpu: "GPU",
   vllm_extra_args: "Extra vLLM args",
-  requests_per_second: "QPS (per replica)",
+  duration: "Duration",
+  completed_request_count: "Completed requests (per replica)",
+  completed_request_rate: "QPS (per replica)",
   ttlt_mean: "Time to last token (seconds, mean)",
   ttlt_p50: "Time to last token (seconds, P50)",
   ttlt_p90: "Time to last token (seconds, P90)",
@@ -51,7 +53,7 @@ const SAMPLE_VISUALIZATIONS = [
   {
     key: "Show all benchmarks",
     value:
-      '/stopwatch/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"dot"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"fill"%3A"gpu"%2C"tip"%3Afalse%7D%7D',
+      '/stopwatch/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"dot"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p50"%2C"fill"%3A"gpu"%2C"tip"%3Afalse%7D%7D',
   },
   {
     key: "Number of H100 GPUs vs. time-to-last-token for Llama-3.1-8B",
@@ -61,12 +63,12 @@ const SAMPLE_VISUALIZATIONS = [
   {
     key: "KV cache utilization vs. number of generated tokens on A100-80GB",
     value:
-      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+%3D+"A100-80GB"+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+gpu+%3D+"A100-80GB"+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "GPU vs. P95 time-to-last-token",
     value:
-      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+generated_tokens+%3D+512+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/stopwatch/-/query?sql=select+*+from+benchmarks+where+generated_tokens+%3D+512+and+vllm_extra_args+%3D+%27%5B%5D%27&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p50"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "Enable-chunked-prefill and enforce-eager vs. P50 time-to-first-token",
@@ -79,22 +81,22 @@ const REGION_SAMPLE_VISUALIZATIONS = [
   {
     key: "Show all benchmarks",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/region-test/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "us-east-1 (AWS)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "us-east4 (GCP)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
   {
     key: "us-ashburn-1 (OCI)",
     value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"requests_per_second"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
+      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
   },
 ];
 
@@ -370,9 +372,9 @@ export async function main() {
         {
           mark: Mark.LineY,
           options: {
-            x: "requests_per_second",
+            x: "completed_request_rate",
             y: "ttlt_p50",
-            stroke: "id",
+            stroke: "group_id",
           },
         },
       ];

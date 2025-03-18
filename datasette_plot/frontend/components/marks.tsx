@@ -97,7 +97,7 @@ function DotEditor(props: {
   const [fill, setFill] = useState<string>(options.fill as string);
 
   useEffect(() => {
-    onUpdate({ x, y, fill: fill ?? "id", tip: options.tip });
+    onUpdate({ x, y, fill: fill ?? "group_id", tip: options.tip });
   }, [x, y, fill]);
 
   return (
@@ -182,7 +182,7 @@ function LineYEditor(props: {
   );
 
   useEffect(() => {
-    onUpdate({ x, y, stroke: "id", tip: false, hidePoints });
+    onUpdate({ x, y, stroke: "group_id", tip: false, hidePoints });
   }, [x, y, hidePoints]);
 
   return (
