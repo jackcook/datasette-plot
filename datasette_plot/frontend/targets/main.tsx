@@ -77,29 +77,6 @@ const SAMPLE_VISUALIZATIONS = [
   },
 ];
 
-const REGION_SAMPLE_VISUALIZATIONS = [
-  {
-    key: "Show all benchmarks",
-    value:
-      '/region-test/-/query?sql=select+*+from+benchmarks&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
-  },
-  {
-    key: "us-east-1 (AWS)",
-    value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
-  },
-  {
-    key: "us-east4 (GCP)",
-    value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-east4"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
-  },
-  {
-    key: "us-ashburn-1 (OCI)",
-    value:
-      '/region-test/-/query?sql=select+*+from+benchmarks+where+region+%3D+"us-ashburn-1"&_plot-mark=%7B"mark"%3A"line-y"%2C"options"%3A%7B"x"%3A"completed_request_rate"%2C"y"%3A"ttlt_p95"%2C"stroke"%3A"id"%2C"tip"%3Afalse%2C"hidePoints"%3Afalse%7D%7D',
-  },
-];
-
 const getSampleVisualizations = (hostname: string, search: string) => {
   if (
     hostname === "jackcook--datasette.modal.run" &&
@@ -206,6 +183,35 @@ function Preview(props: {
       | BarYOptions
       | DotOptions
       | LineYOptionsWithHidePoints;
+
+    // TODO: Clean this up
+    const minY = Math.min(
+      0,
+      props.data.reduce((min: number, row: any) => {
+        return Math.min(
+          min,
+          ...props.marks.map((m) =>
+            props.data.reduce(
+              (markMin, row) => Math.min(markMin, row[m.options.y as string]),
+              Infinity
+            )
+          )
+        );
+      }, Infinity)
+    );
+
+    const maxY = props.data.reduce((max: number, row: any) => {
+      return Math.max(
+        max,
+        ...props.marks.map((m) =>
+          props.data.reduce(
+            (markMax, row) => Math.max(markMax, row[m.options.y as string]),
+            -Infinity
+          )
+        )
+      );
+    }, -Infinity);
+
     const p = plot({
       width: 800,
       color: { legend: true },
@@ -214,6 +220,7 @@ function Preview(props: {
       },
       y: {
         label: COLUMN_ID_TO_NAME[options.y as string],
+        domain: [minY, maxY],
       },
       marks: props.marks
         .map((m) => {
