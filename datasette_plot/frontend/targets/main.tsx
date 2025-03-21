@@ -100,11 +100,12 @@ const REGION_SAMPLE_VISUALIZATIONS = [
   },
 ];
 
-const getSampleVisualizations = (hostname: string) => {
-  if (hostname === "jackcook--datasette.modal.run") {
+const getSampleVisualizations = (hostname: string, search: string) => {
+  if (
+    hostname === "jackcook--datasette.modal.run" &&
+    search.includes("from+benchmarks")
+  ) {
     return SAMPLE_VISUALIZATIONS;
-  } else if (hostname === "jackcook--datasette-region.modal.run") {
-    return REGION_SAMPLE_VISUALIZATIONS;
   }
 
   return [];
@@ -295,22 +296,27 @@ function App(props: {
 }) {
   const { rows, next, columns, initialMarks } = props;
 
+  const samples = getSampleVisualizations(
+    window.location.hostname,
+    window.location.search
+  );
+
   return (
     <div className="datasette-plot">
-      <div className="preset-buttons-container">
-        <div>Sample visualizations:</div>
-        <div className="preset-buttons">
-          <ul>
-            {getSampleVisualizations(window.location.hostname).map(
-              ({ key, value }) => (
+      {samples.length > 0 && (
+        <div className="preset-buttons-container">
+          <div>Sample visualizations:</div>
+          <div className="preset-buttons">
+            <ul>
+              {samples.map(({ key, value }) => (
                 <li>
                   <a href={value}>{key}</a>
                 </li>
-              )
-            )}
-          </ul>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      )}
       <PlotEditor data={rows} columns={columns} initialMarks={initialMarks} />
       {next !== undefined ? (
         <div>Warning: not all table rows returned, only {rows.length} rows</div>
